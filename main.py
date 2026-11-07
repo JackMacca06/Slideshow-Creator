@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 import threading
 import queue
 from file_explorer import File_Explorer
-from wmv_creator import WMV_Creator
+from mp4_creator import MP4_Creator
 
 class SlideshowApp:
     def __init__(self, root):
@@ -13,7 +13,7 @@ class SlideshowApp:
         self.root.resizable(False, False)
 
         self.explorer = File_Explorer()
-        self.creator = WMV_Creator()
+        self.creator = MP4_Creator()
         
         self.progress_queue = queue.Queue()
         self.selected_pictures = []

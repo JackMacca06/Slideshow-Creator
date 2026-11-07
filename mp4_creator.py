@@ -24,7 +24,7 @@ class TkinterProgressLogger(ProgressBarLogger):
                 percentage = int((bar['index'] / bar['total']) * 100)
                 self.progress_callback(percentage)
 
-class WMV_Creator:
+class MP4_Creator:
     IMAGE_DURATION_CONST = 4.0
     FADE_DURATION_CONST = 1.0
    
@@ -66,7 +66,7 @@ class WMV_Creator:
 
         if self.clips:
             final_video = concatenate_videoclips(self.clips, method="compose", padding=-fade_duration)
-            output_file = output_path / "slideshow.wmv"
+            output_file = output_path / "slideshow.mp4"
             
             custom_logger = TkinterProgressLogger(progress_callback)
             
@@ -76,7 +76,7 @@ class WMV_Creator:
             final_video.write_videofile(
                 str(output_file),
                 fps=24,
-                codec="wmv2",
+                codec="libx264",
                 audio=False,
                 threads=4,
                 ffmpeg_params=[
