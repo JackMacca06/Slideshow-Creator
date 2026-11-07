@@ -28,7 +28,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # Removed the 'cache' option to stop it searching for missing text files
+        python-version: '3.11'
 
     - name: Install System Dependencies (Windows Only)
       if: matrix.os == 'windows-latest'
@@ -38,7 +38,7 @@ jobs:
 
     - name: Install Common Dependencies
       run: |
-        pip install pyinstaller moviepy pillow numpy proglog
+        pip install pyinstaller moviepy pillow pillow-heif numpy proglog
 
     - name: Run PyInstaller Build
       run: |
