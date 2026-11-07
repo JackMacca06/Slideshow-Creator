@@ -48,7 +48,7 @@ class SlideshowApp:
         self.fade_dur_spin.grid(row=0, column=3, sticky=tk.W)
 
         # 3. Compile Row (Disabled until images are fetched)
-        self.compile_btn = ttk.Button(main_frame, text="Compile Slideshow (.wmv)", command=self.start_rendering, state=tk.DISABLED)
+        self.compile_btn = ttk.Button(main_frame, text="Compile Slideshow (.mp4)", command=self.start_rendering, state=tk.DISABLED)
         self.compile_btn.pack(fill=tk.X, pady=(0, 10))
 
         # 4. Progress Display
