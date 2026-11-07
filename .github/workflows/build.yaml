@@ -10,6 +10,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false # Prevents one failing OS from canceling the other one automatically
       matrix:
         os: [windows-latest, macos-latest]
         include:
@@ -27,13 +28,11 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
-        cache: 'pip'
+        python-version: '3.11' # Removed the 'cache' option to stop it searching for missing text files
 
     - name: Install System Dependencies (Windows Only)
       if: matrix.os == 'windows-latest'
       run: |
-        # Force windows runner to properly pull down clean tcl/tk binaries for tkinter stability
         python -m pip install --upgrade pip
         pip install imageio-ffmpeg
 
@@ -50,4 +49,3 @@ jobs:
       with:
         name: ${{ matrix.artifact_name }}
         path: ${{ matrix.asset_path }}
-
