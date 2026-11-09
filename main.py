@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 import threading
 import queue
 from file_explorer import File_Explorer
-from mp4_creator import MP4_Creator
+from video_creator import Video_Creator
 
 class SlideshowApp:
     def __init__(self, root):
@@ -13,7 +13,7 @@ class SlideshowApp:
         self.root.resizable(False, False)
 
         self.explorer = File_Explorer()
-        self.creator = MP4_Creator()
+        self.creator = Video_Creator()
         
         self.progress_queue = queue.Queue()
         self.selected_pictures = []
@@ -48,8 +48,10 @@ class SlideshowApp:
         self.fade_dur_spin.grid(row=0, column=3, sticky=tk.W)
 
         # 3. Compile Row (Disabled until images are fetched)
-        self.compile_btn = ttk.Button(main_frame, text="Compile Slideshow (.mp4)", command=self.start_rendering, state=tk.DISABLED)
-        self.compile_btn.pack(fill=tk.X, pady=(0, 10))
+        self.compile_btn_mp4 = ttk.Button(main_frame, text="Compile Slideshow (.mp4)", command=self.start_rendering_mp4, state=tk.DISABLED)
+        self.compile_btn_mp4.pack(fill=tk.X, pady=(0, 10))
+        self.compile_btn_wmv = ttk.Button(main_frame, text="Compile Slideshow (.wmv)", command=self.start_rendering_wmv, state=tk.DISABLED)
+        self.compile_btn_wmv.pack(fill=tk.X, pady=(0, 10))
 
         # 4. Progress Display
         self.progress_bar = ttk.Progressbar(main_frame, orient=tk.HORIZONTAL, length=380, mode='determinate')
@@ -64,14 +66,16 @@ class SlideshowApp:
 
         if self.selected_pictures and folder_path:
             self.folder_label.config(text=f"Selected Folder: {folder_path.name} ({len(self.selected_pictures)} images)", foreground="black")
-            self.compile_btn.config(state=tk.NORMAL)
+            self.compile_btn_wmv.config(state=tk.NORMAL)
+            self.compile_btn_mp4.config(state=tk.NORMAL)
             self.progress_bar['value'] = 0
             self.status_label.config(text="Status: Ready to compile.")
         else:
             self.folder_label.config(text="No folder selected", foreground="gray")
-            self.compile_btn.config(state=tk.DISABLED)
+            self.compile_btn_wmv.config(state=tk.DISABLED)
+            self.compile_btn_mp4.config(state=tk.DISABLED)
 
-    def start_rendering(self):
+    def start_rendering_mp4(self):
         # Read the current customized timing values from the inputs
         try:
             chosen_image_duration = self.img_dur_var.get()
@@ -87,7 +91,8 @@ class SlideshowApp:
 
         # Lock UI components while background processing handles frames
         self.select_btn.config(state=tk.DISABLED)
-        self.compile_btn.config(state=tk.DISABLED)
+        self.compile_btn_wmv.config(state=tk.DISABLED)
+        self.compile_btn_mp4.config(state=tk.DISABLED)
         self.img_dur_spin.config(state=tk.DISABLED)
         self.fade_dur_spin.config(state=tk.DISABLED)
         self.status_label.config(text="Status: Starting background render pipeline...")
@@ -101,13 +106,55 @@ class SlideshowApp:
                 chosen_fade_duration, 
                 self.explorer.get_path(),
                 self.enqueue_progress,  
-                self.enqueue_completion 
+                self.enqueue_completion,
+                "mp4"
             ),
             daemon=True
         )
         render_thread.start()
         
         self.root.after(100, self.poll_progress_queue)
+
+    def start_rendering_wmv(self):
+        # Read the current customized timing values from the inputs
+        try:
+            chosen_image_duration = self.img_dur_var.get()
+            chosen_fade_duration = self.fade_dur_var.get()
+        except tk.TclError:
+            messagebox.showerror("Invalid Input", "Please enter valid numbers for the duration settings.")
+            return
+
+        # Safeguard: Make sure the transition isn't longer than the slide visibility itself
+        if chosen_fade_duration * 2 >= chosen_image_duration:
+            messagebox.showwarning("Timing Warning", "Fade duration is too long compared to image duration! Please lower your fade time.")
+            return
+
+        # Lock UI components while background processing handles frames
+        self.select_btn.config(state=tk.DISABLED)
+        self.compile_btn_wmv.config(state=tk.DISABLED)
+        self.compile_btn_mp4.config(state=tk.DISABLED)
+        self.img_dur_spin.config(state=tk.DISABLED)
+        self.fade_dur_spin.config(state=tk.DISABLED)
+        self.status_label.config(text="Status: Starting background render pipeline...")
+        self.progress_bar['value'] = 0
+
+        render_thread = threading.Thread(
+            target=self.creator.render_pipeline_worker,
+            args=(
+                self.selected_pictures, 
+                chosen_image_duration, 
+                chosen_fade_duration, 
+                self.explorer.get_path(),
+                self.enqueue_progress,  
+                self.enqueue_completion,
+                "wmv"
+            ),
+            daemon=True
+        )
+        render_thread.start()
+        
+        self.root.after(100, self.poll_progress_queue)
+
 
     def enqueue_progress(self, percent):
         self.progress_queue.put(("PROGRESS", percent))

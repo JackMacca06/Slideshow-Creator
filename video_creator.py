@@ -24,14 +24,14 @@ class TkinterProgressLogger(ProgressBarLogger):
                 percentage = int((bar['index'] / bar['total']) * 100)
                 self.progress_callback(percentage)
 
-class MP4_Creator:
+class Video_Creator:
     IMAGE_DURATION_CONST = 4.0
     FADE_DURATION_CONST = 1.0
    
     def __init__(self) -> None:
         self.clips = []
 
-    def render_pipeline_worker(self, picture_list, image_duration, fade_duration, output_path, progress_callback, on_complete_callback):
+    def render_pipeline_worker(self, picture_list, image_duration, fade_duration, output_path, progress_callback, on_complete_callback, option):
         """Core high-fidelity rendering pipeline designed to prioritize image quality over speed."""
         self.clips = []
         TARGET_SIZE = (1920, 1080) # 1080p Pristine Widescreen Canvas
@@ -66,17 +66,14 @@ class MP4_Creator:
 
         if self.clips:
             final_video = concatenate_videoclips(self.clips, method="compose", padding=-fade_duration)
-            output_file = output_path / "slideshow.mp4"
+            output_file = output_path / ("slideshow.mp4" if option == "mp4" else "slideshow.wmv")
             
             custom_logger = TkinterProgressLogger(progress_callback)
             
-            # 2. PRISTINE COMPRESSION PARAMETERS:
-            # - Preset changed to 'medium' for highly accurate compression curves
-            # - Added qscale/crf parameters to ensure a high video bitrate (no blocky artifacts)
             final_video.write_videofile(
                 str(output_file),
                 fps=24,
-                codec="libx264",
+                codec=("libx264" if option == "mp4" else "msmpeg4"),
                 audio=False,
                 threads=4,
                 ffmpeg_params=[
